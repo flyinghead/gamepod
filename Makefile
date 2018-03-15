@@ -1,4 +1,6 @@
 PREFIXDIR=/usr/local
+#escaped for sed
+SERIALDEV=\/dev\/ttyACM0
 OBJS=main.o soundvolume.o volumegraph.o timer.o batlevel.o
 BIN=gamepod-overlay
 
@@ -27,4 +29,10 @@ install: $(BIN)
 	install $(BIN) $(PREFIXDIR)/bin
 	install -d $(PREFIXDIR)/share/gamepod-overlay
 	install *.png $(PREFIXDIR)/share/gamepod-overlay
+	grep -q gamepod-overlay /etc/rc.local ; \
+	if grep -q gamepod-overlay /etc/rc.local ; then \
+		sed -i "s/^.*gamepod-overlay.*$$/\/usr\/local\/bin\/gamepod-overlay $(SERIALDEV) \&/g" /etc/rc.local ; \
+	else \
+		sed -i "s/^exit 0/\/usr\/local\/bin\/gamepod-overlay $(SERIALDEV) \&\\nexit 0/g" /etc/rc.local ; \
+	fi
 
