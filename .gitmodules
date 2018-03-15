@@ -1,0 +1,3 @@
+[submodule "raspidmx"]
+	path = raspidmx
+	url = https://github.com/AndrewFromMelbourne/raspidmx.git
