@@ -49,7 +49,11 @@
 
 //-------------------------------------------------------------------------
 
-const char *image_path = ".";
+#ifndef IMAGE_PATH
+#define IMAGE_PATH "."
+#endif
+
+const char *image_path = IMAGE_PATH;
 const char *gpio_path = NULL;
 
 const char *program = NULL;
@@ -82,7 +86,7 @@ static void usage(void)
 {
     fprintf(stderr, "Usage: %s ", program);
     fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] <tty device>\n");
-    fprintf(stderr, "    -d - set directory containing images (defauls to \".\")\n");
+    fprintf(stderr, "    -d - set directory containing images (defauls to \"%s\")\n", IMAGE_PATH);
     fprintf(stderr, "    -c - gpio to indicate charge (e.g. /sys/class/gpio/gpio22/value)\n");
 
     exit(EXIT_FAILURE);

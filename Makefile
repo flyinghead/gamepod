@@ -1,7 +1,8 @@
+PREFIXDIR=/usr/local
 OBJS=main.o soundvolume.o volumegraph.o timer.o batlevel.o
 BIN=gamepod-overlay
 
-CFLAGS+=-Wall -g -O3 -Iraspidmx/common $(shell libpng-config --cflags)
+CFLAGS+=-Wall -g -O3 -Iraspidmx/common $(shell libpng-config --cflags) -DIMAGE_PATH='"$(PREFIXDIR)/share/gamepod-overlay"'
 LDFLAGS+=-L/opt/vc/lib/ -lbcm_host -lm $(shell libpng-config --ldflags) -Lraspidmx/lib -l:libraspidmx.a -lasound -lrt
 
 INCLUDES+=-I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
@@ -21,3 +22,9 @@ $(BIN): $(OBJS)
 clean:
 	@rm -f $(OBJS)
 	@rm -f $(BIN)
+
+install: $(BIN)
+	install $(BIN) $(PREFIXDIR)/bin
+	install -d $(PREFIXDIR)/share/gamepod-overlay
+	install *.png $(PREFIXDIR)/share/gamepod-overlay
+
