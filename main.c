@@ -42,6 +42,7 @@
 #include "batlevel.h"
 #include "volumegraph.h"
 #include "timer.h"
+#include "wifi.h"
 
 //-------------------------------------------------------------------------
 
@@ -85,9 +86,10 @@ signalHandler(
 static void usage(void)
 {
     fprintf(stderr, "Usage: %s ", program);
-    fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] <tty device>\n");
+    fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] [-w <wifi interface>] <tty device>\n");
     fprintf(stderr, "    -d - set directory containing images (defauls to \"%s\")\n", IMAGE_PATH);
     fprintf(stderr, "    -c - gpio to indicate charge (e.g. /sys/class/gpio/gpio22/value)\n");
+    fprintf(stderr, "    -w - set the wifi lan interface to monitor (e.g. wlan0)\n");
 
     exit(EXIT_FAILURE);
 }
@@ -131,7 +133,7 @@ int main(int argc, char *argv[])
 
     int opt = 0;
 
-    while ((opt = getopt(argc, argv, "d:c:")) != -1)
+    while ((opt = getopt(argc, argv, "d:c:w:")) != -1)
     {
         switch(opt)
         {
@@ -143,6 +145,10 @@ int main(int argc, char *argv[])
         case 'c':
             
             gpio_path = optarg;
+            break;
+        
+        case 'w':
+            wifi_ifname = optarg;
             break;
             
         default:
@@ -192,6 +198,7 @@ int main(int argc, char *argv[])
     timeout_init();
     batlevel_init();
     volgraph_init();
+    wifi_init();
 
     //---------------------------------------------------------------------
 
@@ -202,6 +209,7 @@ int main(int argc, char *argv[])
     {
         volgraph_run();
         batlevel_run();
+        wifi_run();
 
         int i = read(serialfd, p, 1);
         switch (i) {
@@ -241,6 +249,7 @@ int main(int argc, char *argv[])
     
     close(serialfd);		// This blocks. Use: sudo setserial /dev/ttyACM0 closing_wait none
 
+    wifi_destroy();
     batlevel_destroy();
     volgraph_destroy();
     timeout_done();
