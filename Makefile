@@ -1,6 +1,7 @@
 PREFIXDIR=/usr/local
 #escaped for sed
 SERIALDEV=\/dev\/ttyACM0
+WIFI_IF=wlan0
 OBJS=main.o soundvolume.o volumegraph.o timer.o batlevel.o wifi.o
 BIN=gamepod-overlay
 
@@ -35,8 +36,8 @@ install: $(BIN)
 		sed -i "s/^exit 0/setserial $(SERIALDEV) closing_wait none\\nexit 0/g" /etc/rc.local ; \
 	fi
 	if grep -q gamepod-overlay /etc/rc.local ; then \
-		sed -i "s/^.*gamepod-overlay.*$$/\/usr\/local\/bin\/gamepod-overlay $(SERIALDEV) \&/g" /etc/rc.local ; \
+		sed -i "s/^.*gamepod-overlay.*$$/\/usr\/local\/bin\/gamepod-overlay -w $(WIFI_IF) $(SERIALDEV) \&/g" /etc/rc.local ; \
 	else \
-		sed -i "s/^exit 0/\/usr\/local\/bin\/gamepod-overlay $(SERIALDEV) \&\\nexit 0/g" /etc/rc.local ; \
+		sed -i "s/^exit 0/\/usr\/local\/bin\/gamepod-overlay -w $(WIFI_IF) $(SERIALDEV) \&\\nexit 0/g" /etc/rc.local ; \
 	fi
 
