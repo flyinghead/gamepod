@@ -24,7 +24,7 @@ static IMAGE_LAYER_T bargraphImgLayer;
 static int volumeGraphTimer = -1;
 
 void volgraph_init() {
-    printf("Volume %d\n", getAlsaMasterVolume());
+    //printf("Volume %d\n", getAlsaMasterVolume());
     
     initBackgroundLayer(&backgroundLayer, 0x8, 0);
     char path[256];

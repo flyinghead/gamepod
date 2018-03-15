@@ -47,7 +47,7 @@ void batlevel_run() {
 }
 
 void set_batlevel(double vbat, bool charging) {
-    printf("VBat=%f\n", vbat);
+    //printf("VBat=%f\n", vbat);
     int batLevel = 0;
     if (!charging) {
         if (vbat >= 3.6) {
@@ -83,7 +83,7 @@ void set_batlevel(double vbat, bool charging) {
             batLevel = 14;
     }
     if (batLevel != currentBatLevel) {
-        printf("Changing to battery level %d\n", batLevel);
+        //printf("Changing to battery level %d\n", batLevel);
         currentBatLevel = batLevel;
 
         char imagePath[512];

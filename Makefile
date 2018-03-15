@@ -29,7 +29,11 @@ install: $(BIN)
 	install $(BIN) $(PREFIXDIR)/bin
 	install -d $(PREFIXDIR)/share/gamepod-overlay
 	install *.png $(PREFIXDIR)/share/gamepod-overlay
-	grep -q gamepod-overlay /etc/rc.local ; \
+	if grep -q setserial /etc/rc.local ; then \
+		sed -i "s/^.*setserial.*$$/setserial $(SERIALDEV) closing_wait none/g" /etc/rc.local ; \
+	else \
+		sed -i "s/^exit 0/setserial $(SERIALDEV) closing_wait none\\nexit 0/g" /etc/rc.local ; \
+	fi
 	if grep -q gamepod-overlay /etc/rc.local ; then \
 		sed -i "s/^.*gamepod-overlay.*$$/\/usr\/local\/bin\/gamepod-overlay $(SERIALDEV) \&/g" /etc/rc.local ; \
 	else \
