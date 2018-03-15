@@ -181,12 +181,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    int serialfd = open(argv[optind], O_RDONLY);
-    if (serialfd < 0) {
-        perror("Can't open serial port");
-        exit(EXIT_FAILURE);
-    }
-
     bcm_host_init();
 
     display = vc_dispmanx_display_open(displayNumber);
@@ -202,6 +196,7 @@ int main(int argc, char *argv[])
 
     //---------------------------------------------------------------------
 
+    int serialfd = -1;
     char line[256];
     char *p = line;
 
@@ -211,6 +206,15 @@ int main(int argc, char *argv[])
         batlevel_run();
         wifi_run();
 
+        if (serialfd < 0) {
+            serialfd = open(argv[optind], O_RDONLY);
+            if (serialfd < 0) {
+                perror("Can't open serial port");
+                // TODO Use timer
+                sleep(1);
+                continue;
+            }
+        }
         int i = read(serialfd, p, 1);
         switch (i) {
             case -1:
@@ -221,7 +225,8 @@ int main(int argc, char *argv[])
             
             case 0:
                 fprintf(stderr, "EOF reading from serial device\n");
-                run = false;
+                close(serialfd);
+                serialfd = -1;
                 continue;
             
             case 1:
@@ -247,7 +252,8 @@ int main(int argc, char *argv[])
 
     //---------------------------------------------------------------------
     
-    close(serialfd);		// This blocks. Use: sudo setserial /dev/ttyACM0 closing_wait none
+    if (serialfd >= 0)
+        close(serialfd);		// This blocks. Use: sudo setserial /dev/ttyACM0 closing_wait none
 
     wifi_destroy();
     batlevel_destroy();
