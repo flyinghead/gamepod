@@ -1,0 +1,12 @@
+[Unit]
+Description=Battery, Wi-Fi and sound volume overlay indicators
+After=rc-local.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/setserial /dev/ttyACM0 closing_wait none
+ExecStart=/usr/local/bin/gamepod-overlay -w wlan0 /dev/ttyACM0
+
+[Install]
+WantedBy=multi-user.target
+

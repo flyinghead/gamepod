@@ -30,14 +30,13 @@ install: $(BIN)
 	install $(BIN) $(PREFIXDIR)/bin
 	install -d $(PREFIXDIR)/share/gamepod-overlay
 	install *.png $(PREFIXDIR)/share/gamepod-overlay
-	if grep -q setserial /etc/rc.local ; then \
-		sed -i "s/^.*setserial.*$$/setserial $(SERIALDEV) closing_wait none/g" /etc/rc.local ; \
-	else \
-		sed -i "s/^exit 0/setserial $(SERIALDEV) closing_wait none\\nexit 0/g" /etc/rc.local ; \
-	fi
-	if grep -q gamepod-overlay /etc/rc.local ; then \
-		sed -i "s/^.*gamepod-overlay.*$$/\/usr\/local\/bin\/gamepod-overlay -w $(WIFI_IF) $(SERIALDEV) \&/g" /etc/rc.local ; \
-	else \
-		sed -i "s/^exit 0/\/usr\/local\/bin\/gamepod-overlay -w $(WIFI_IF) $(SERIALDEV) \&\\nexit 0/g" /etc/rc.local ; \
-	fi
+	install gamepod-overlay.service /etc/systemd/system
+	systemctl enable gamepod-overlay.service
+	systemctl restart gamepod-overlay.service
 
+uninstall:
+	-systemctl stop gamepod-overlay.service
+	-systemctl disable gamepod-overlay.service
+	rm -f $(PREFIXDIR)/bin/$(BIN)
+	rm -rf $(PREFIXDIR)/share/gamepod-overlay
+	rm -f /etc/systemd/system/gamepod-overlay.service
