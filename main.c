@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
         wifi_run();
 
         if (serialfd < 0) {
-            serialfd = open(argv[optind], O_RDONLY);
+            serialfd = open(argv[optind], O_RDONLY|O_NOCTTY);
             if (serialfd < 0) {
                 perror("Can't open serial port");
                 // TODO Use timer
