@@ -10,7 +10,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)  
  
 def Shutdown():  
-    os.system("halt --no-wall")
+    os.system("poweroff --no-wall")
 
 def PowerButtonDown(channel):
     start = time.time()

@@ -155,8 +155,8 @@ void wifi_run() {
                     DISPMANX_UPDATE_HANDLE_T update = vc_dispmanx_update_start(0);
                     assert(update != 0);
                     addElementImageLayerOffset(&wifiImgLayer,
-                                               5,
-                                               5,
+                                               10,
+                                               10,
                                                display,
                                                update);
                     
