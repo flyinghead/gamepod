@@ -1,0 +1,12 @@
+[Unit]
+Description=Power off the system when power button is pressed
+After=rc-local.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/othermodoff.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

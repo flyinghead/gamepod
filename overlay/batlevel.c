@@ -16,7 +16,7 @@ int currentBatLevel = -1;
 
 void batlevel_init() {
     xOffset = info.width - 30;
-    yOffset = 5;
+    yOffset = 10;
 }
 
 void batlevel_destroy() {

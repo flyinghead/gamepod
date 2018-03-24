@@ -248,6 +248,18 @@ int main(int argc, char *argv[])
             bool up = line[6] == '+';
             change_volume(up);
         }
+	else if (!strcmp(line, "POWEROFF")) {
+	    pid_t pid = fork();
+    	    if (pid == -1) {
+        	perror("fork");
+	    }
+    	    else if (pid == 0) {
+        	// Child
+		execlp("poweroff", "poweroff", "--no-wall", NULL);
+        	exit(1);
+        	return -1;
+	    }
+	}
     }
 
     //---------------------------------------------------------------------

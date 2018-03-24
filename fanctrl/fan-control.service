@@ -1,0 +1,12 @@
+[Unit]
+Description=Daemon that controls the CPU fan speed
+After=rc-local.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/fanctrl.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
