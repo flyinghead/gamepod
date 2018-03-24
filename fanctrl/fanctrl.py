@@ -4,10 +4,11 @@ import time
 from time import sleep
 import signal
 import sys
-import RPi.GPIO as GPIO
+import pigpio
 
 desiredTemp = 75 # The maximum temperature in Celsius after which we trigger the fan
 		 # Max temp for BCM2837 is 85 C. Pi thermal throttle probably around 82 C
+gpiochan=18	# GPIO channel 18 -> pin 12
 
 # PI(D) params
 pTemp=15
@@ -39,11 +40,11 @@ def handleFan():
     if sum<-50:
         sum=-50
     #print("actualTemp %4.2f TempDiff %4.2f pDiff %4.2f iDiff %4.2f fanSpeed %5d" % (actualTemp,diff,pDiff,iDiff,fanSpeed))
-    Pwm.ChangeDutyCycle(int(fanSpeed))
+    pigpio.set_PWM_dutycycle(gpiochan, fanSpeed)
     return()
 
 def fanOFF():
-    Pwm.ChangeDutyCycle(0)   # switch fan off
+    pigpio.set_PWM_dutycycle(gpiochan, 0)	# switch fan off
     return()
 
 def signalHandler(_signo, _stack_frame):
@@ -52,11 +53,10 @@ def signalHandler(_signo, _stack_frame):
 
 try:
     signal.signal(signal.SIGTERM, signalHandler)
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(12, GPIO.OUT)
-    Pwm = GPIO.PWM(12, 23000)
-    Pwm.start(50)
+    pigpio = pigpio.pi()
+    pigpio.set_PWM_frequency(gpiochan, 23000)
+    print(pigpio.get_PWM_frequency(gpiochan))
+    pigpio.set_PWM_range(gpiochan, 100)
     fanOFF()
     while True:
         handleFan()
