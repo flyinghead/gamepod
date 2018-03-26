@@ -1,0 +1,13 @@
+diff -rupN linux-be2540e540f5442d7b372208787fb64100af0c54/drivers/power/reset/gpio-poweroff.c ../linux-be2540e540f5442d7b372208787fb64100af0c54/drivers/power/reset/gpio-poweroff.c
+--- linux-be2540e540f5442d7b372208787fb64100af0c54/drivers/power/reset/gpio-poweroff.c	2017-06-30 14:13:21.000000000 +0200
++++ ../linux-be2540e540f5442d7b372208787fb64100af0c54/drivers/power/reset/gpio-poweroff.c	2018-03-26 08:16:06.782922567 +0200
+@@ -40,7 +40,7 @@ static void gpio_poweroff_do_poweroff(vo
+ 	gpiod_set_value(reset_gpio, 1);
+ 
+ 	/* give it some time */
+-	mdelay(3000);
++	mdelay(30000);  /* Raph: was 3000 */
+ 
+ 	WARN_ON(1);
+ }
+
