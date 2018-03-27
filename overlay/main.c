@@ -86,10 +86,11 @@ signalHandler(
 static void usage(void)
 {
     fprintf(stderr, "Usage: %s ", program);
-    fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] [-w <wifi interface>] <tty device>\n");
+    fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] [-w <wifi interface>] [-p] <tty device>\n");
     fprintf(stderr, "    -d - set directory containing images (defauls to \"%s\")\n", IMAGE_PATH);
     fprintf(stderr, "    -c - gpio to indicate charge (e.g. /sys/class/gpio/gpio22/value)\n");
     fprintf(stderr, "    -w - set the wifi lan interface to monitor (e.g. wlan0)\n");
+    fprintf(stderr, "    -p - ignore power off request\n");
 
     exit(EXIT_FAILURE);
 }
@@ -132,18 +133,17 @@ int main(int argc, char *argv[])
     //---------------------------------------------------------------------
 
     int opt = 0;
+    bool ignore_poweroff = false;
 
-    while ((opt = getopt(argc, argv, "d:c:w:")) != -1)
+    while ((opt = getopt(argc, argv, "d:c:w:p")) != -1)
     {
         switch(opt)
         {
         case 'd':
-
             image_path = optarg;
             break;
 
         case 'c':
-            
             gpio_path = optarg;
             break;
         
@@ -151,8 +151,11 @@ int main(int argc, char *argv[])
             wifi_ifname = optarg;
             break;
             
-        default:
+	case 'p':
+	    ignore_poweroff = true;
+	    break;
 
+        default:
             usage();
             break;
         }
@@ -248,7 +251,7 @@ int main(int argc, char *argv[])
             bool up = line[6] == '+';
             change_volume(up);
         }
-	else if (!strcmp(line, "POWEROFF")) {
+	else if (!strcmp(line, "POWEROFF") && !ignore_poweroff) {
 	    pid_t pid = fork();
     	    if (pid == -1) {
         	perror("fork");
