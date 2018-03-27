@@ -86,6 +86,6 @@ audio_pwm_mode=2
 # it's not in the current distrib
 #display_rotate=2
 
-#dtoverlay=pi3-disable-bt
+dtoverlay=pi3-disable-bt
 dtoverlay=gpio-poweroff,gpiopin=27,active_low="y"
 
