@@ -73,12 +73,12 @@ void set_batlevel(double vbat, bool charging) {
                 batLevel = 10;
         }
     } else {
-	vbat *= 0.97;	// Correction factor because we don't get 5V (arduino vref) when charging
+	//vbat *= 0.99;	// Correction factor because we don't get 5V (arduino vref) when charging
         if (vbat < 4.023)
             batLevel = 11;
-        else if (vbat < 4.073)
+        else if (vbat < 4.072)
             batLevel = 12;
-        else if (vbat < 4.18)
+        else if (vbat < 4.16)
             batLevel = 13;
         else
             batLevel = 14;
