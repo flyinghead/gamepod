@@ -56,6 +56,7 @@
 
 const char *image_path = IMAGE_PATH;
 const char *gpio_path = NULL;
+const char *alsa_mixer = "PCM";
 
 const char *program = NULL;
 
@@ -63,8 +64,12 @@ const char *program = NULL;
 
 volatile bool run = true;
 
+const uint32_t displayNumber = 0;
 DISPMANX_DISPLAY_HANDLE_T display;
 DISPMANX_MODEINFO_T info;
+
+void open_display();
+void close_display();
 
 //-------------------------------------------------------------------------
 
@@ -81,15 +86,31 @@ signalHandler(
     };
 }
 
+void tvservice_callback(void *callback_data, uint32_t reason, uint32_t param1, uint32_t param2) {
+    switch (reason) {
+    case VC_HDMI_HDMI:
+    case VC_HDMI_DVI:
+    case VC_SDTV_NTSC:
+    case VC_SDTV_PAL:
+	// Video mode has changed. Need to re-open display
+	close_display();
+	open_display();
+	break;
+    default:
+	break;
+    }
+}
+
 //-------------------------------------------------------------------------
 
 static void usage(void)
 {
     fprintf(stderr, "Usage: %s ", program);
-    fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] [-w <wifi interface>] [-p] <tty device>\n");
+    fprintf(stderr, "[-d <images directory>] [-c <charge indicator>] [-w <wifi interface>] [-s sound device] [-p] <tty device>\n");
     fprintf(stderr, "    -d - set directory containing images (defauls to \"%s\")\n", IMAGE_PATH);
     fprintf(stderr, "    -c - gpio to indicate charge (e.g. /sys/class/gpio/gpio22/value)\n");
     fprintf(stderr, "    -w - set the wifi lan interface to monitor (e.g. wlan0)\n");
+    fprintf(stderr, "    -s - set the ALSA sound device for volume control (default: PCM)\n");
     fprintf(stderr, "    -p - ignore power off request\n");
 
     exit(EXIT_FAILURE);
@@ -124,9 +145,32 @@ bool isCharging() {
 
 //-------------------------------------------------------------------------
 
+void open_display() {
+    display = vc_dispmanx_display_open(displayNumber);
+    assert(display != 0);
+
+    int result = vc_dispmanx_display_get_info(display, &info);
+    assert(result == 0);
+
+    batlevel_init();
+    volgraph_init();
+    wifi_init();
+
+}
+
+void close_display() {
+    wifi_destroy();
+    batlevel_destroy();
+    volgraph_destroy();
+
+    int result = vc_dispmanx_display_close(display);
+    assert(result == 0);
+}
+
+//-------------------------------------------------------------------------
+
 int main(int argc, char *argv[])
 {
-    uint32_t displayNumber = 0;
 
     program = basename(argv[0]);
 
@@ -135,7 +179,7 @@ int main(int argc, char *argv[])
     int opt = 0;
     bool ignore_poweroff = false;
 
-    while ((opt = getopt(argc, argv, "d:c:w:p")) != -1)
+    while ((opt = getopt(argc, argv, "d:c:w:s:p")) != -1)
     {
         switch(opt)
         {
@@ -146,11 +190,15 @@ int main(int argc, char *argv[])
         case 'c':
             gpio_path = optarg;
             break;
-        
+
         case 'w':
             wifi_ifname = optarg;
             break;
-            
+
+        case 's':
+            alsa_mixer = optarg;
+            break;
+
 	case 'p':
 	    ignore_poweroff = true;
 	    break;
@@ -184,18 +232,13 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    timeout_init();
+
     bcm_host_init();
 
-    display = vc_dispmanx_display_open(displayNumber);
-    assert(display != 0);
+    vc_tv_register_callback(tvservice_callback, NULL);
 
-    int result = vc_dispmanx_display_get_info(display, &info);
-    assert(result == 0);
-
-    timeout_init();
-    batlevel_init();
-    volgraph_init();
-    wifi_init();
+    open_display();
 
     //---------------------------------------------------------------------
 
@@ -270,13 +313,10 @@ int main(int argc, char *argv[])
     if (serialfd >= 0)
         close(serialfd);		// This blocks. Use: sudo setserial /dev/ttyACM0 closing_wait none
 
-    wifi_destroy();
-    batlevel_destroy();
-    volgraph_destroy();
-    timeout_done();
+    close_display();
+    vc_tv_unregister_callback(tvservice_callback);
 
-    result = vc_dispmanx_display_close(display);
-    assert(result == 0);
+    timeout_done();
 
     return 0;
 }

@@ -49,10 +49,15 @@ void wifi_init() {
 }
 
 void wifi_destroy() {
-    if (wifiImgLayer.resource != 0)
+    if (wifiImgLayer.resource != 0) {
         destroyImageLayer(&wifiImgLayer);
-    if (wifi_timer != -1)
+	wifiImgLayer.resource = 0;
+    }
+    if (wifi_timer != -1) {
         timeout_unset(wifi_timer);
+	wifi_timer = -1;
+    }
+    current_wifi_level = -1;
 }
 
 static int run_iwconfig(const char *ifname) {
@@ -88,7 +93,7 @@ static int run_iwconfig(const char *ifname) {
             return -1;
         }
         char line[256];
-                
+
         while (fgets(line, sizeof(line), fp)) {
             //printf("iwconfig out: %s", line);
             char *p = strstr(line, "Access Point:");
@@ -142,7 +147,7 @@ void wifi_run() {
             else
                 wifi_level = 1;
             if (wifi_level != current_wifi_level) {
-                printf("Changing wifi level to %d\n", wifi_level);
+                //printf("Changing wifi level to %d\n", wifi_level);
                 current_wifi_level = wifi_level;
                 char imagePath[512];
                 sprintf(imagePath, "%s/wifi%d.png", image_path, wifi_level);

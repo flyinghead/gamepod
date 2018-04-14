@@ -20,9 +20,15 @@ void batlevel_init() {
 }
 
 void batlevel_destroy() {
-    destroyImageLayer(&imageLayer);
-    if (batteryBlinkTimer != -1)
+    if (imageLayer.resource != 0) {
+	destroyImageLayer(&imageLayer);
+	imageLayer.resource = 0;
+    }
+    if (batteryBlinkTimer != -1) {
         timeout_unset(batteryBlinkTimer);
+	batteryBlinkTimer = -1;
+    }
+    currentBatLevel = -1;
 }
 
 void batlevel_run() {
