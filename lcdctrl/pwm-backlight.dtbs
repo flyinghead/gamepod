@@ -1,0 +1,30 @@
+/dts-v1/;
+/plugin/;
+
+/*
+PWM backlight driver overlay for PiStation v2
+*/
+
+/ {
+	compatible = "brcm,bcm2835", "bcrm,bcm2708";
+
+	fragment@0 {
+		target = <&pwm>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			pwm_backlight: pwm_backlight {
+				compatible = "pwm-backlight";
+				pwms = <&pwm 0 1000000>;
+				brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15>; 
+				default-brightness-level = <10>;
+				status = "okay";
+	            	};
+        	};
+	};
+};
