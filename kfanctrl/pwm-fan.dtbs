@@ -1,0 +1,57 @@
+/dts-v1/;
+/plugin/;
+
+/*
+PWM fan driver overlay for PiStation v2
+*/
+
+/ {
+	compatible = "brcm,bcm2835", "bcrm,bcm2708";
+
+	fragment@0 {
+		target = <&pwm>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			fan0: pwm-fan {
+				compatible = "pwm-fan";
+				// 23 kHz
+				pwms = <&pwm 1 43478>;
+				cooling-min-state = <0>;
+				cooling-max-state = <9>;
+				#cooling-cells = <2>;
+				cooling-levels = <0 51 77 102 128 153 179 204 230 255>;
+				status = "okay";
+	            	};
+		};
+	};
+/*
+	This doesn't work. Try with Stretch.
+
+	fragment@2 {
+		target-path = "/soc/thermal/thermal-zones/cpu-thermal/trips";
+		__overlay__ {
+			cpu_alert1: cpu-alert1 {
+				temperature = <60000>;	// millicelsius
+				hysteresis = <2000>;	// millicelsius
+				type = "passive";
+			};
+		};
+	};
+
+	fragment@3 {
+		target-path = "/soc/thermal/thermal-zones/cpu-thermal/cooling-maps";
+		__overlay__ {
+			map_alert1 {
+				trip = <&cpu_alert1>;
+				cooling-device = <&fan0 0 1>;
+			};
+		};
+	};
+*/
+};
