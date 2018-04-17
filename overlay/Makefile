@@ -29,8 +29,8 @@ clean:
 install: $(BIN)
 	install $(BIN) $(PREFIXDIR)/bin
 	install -d $(PREFIXDIR)/share/gamepod-overlay
-	install *.png $(PREFIXDIR)/share/gamepod-overlay
-	install gamepod-overlay.service /etc/systemd/system
+	install -m 644 *.png $(PREFIXDIR)/share/gamepod-overlay
+	install -m 644 gamepod-overlay.service /etc/systemd/system
 	systemctl enable gamepod-overlay.service
 	systemctl restart gamepod-overlay.service
 

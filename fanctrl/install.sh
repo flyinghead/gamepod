@@ -4,6 +4,6 @@ systemctl enable pigpiod
 systemctl start pigpiod
 
 install fanctrl.py /usr/local/bin
-install fan-control.service /etc/systemd/system
+install -m 644 fan-control.service /etc/systemd/system
 systemctl enable fan-control
 systemctl restart fan-control
