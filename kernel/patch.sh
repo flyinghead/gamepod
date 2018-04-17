@@ -2,6 +2,7 @@
 
 set -e
 
+sudo apt-get install bc
 wget https://github.com/raspberrypi/linux/archive/be2540e540f5442d7b372208787fb64100af0c54.zip
 unzip be2540e540f5442d7b372208787fb64100af0c54.zip
 cd linux-be2540e540f5442d7b372208787fb64100af0c54
