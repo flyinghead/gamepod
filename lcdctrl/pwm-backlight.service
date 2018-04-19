@@ -1,0 +1,13 @@
+[Unit]
+Description=Turns on display backlight at boot
+DefaultDependencies=no
+After=sys-devices-platform-pwm_backlight-backlight-pwm_backlight.device
+Wants=sys-devices-platform-pwm_backlight-backlight-pwm_backlight.device
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/bin/echo 0 > /sys/class/backlight/pwm_backlight/bl_power'
+
+[Install]
+WantedBy=sysinit.target
+
