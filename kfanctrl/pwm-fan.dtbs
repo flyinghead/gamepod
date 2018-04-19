@@ -27,31 +27,35 @@ PWM fan driver overlay for PiStation v2
 				#cooling-cells = <2>;
 				cooling-levels = <0 51 77 102 128 153 179 204 230 255>;
 				status = "okay";
-	            	};
+			};
 		};
 	};
-/*
-	This doesn't work. Try with Stretch.
 
 	fragment@2 {
-		target-path = "/soc/thermal/thermal-zones/cpu-thermal/trips";
+		target = <&cpu_thermal>;
 		__overlay__ {
-			cpu_alert1: cpu-alert1 {
-				temperature = <60000>;	// millicelsius
-				hysteresis = <2000>;	// millicelsius
-				type = "passive";
+			trips {
+				cpu_alert1: cpu-alert1 {
+					temperature = <75000>;	// millicelsius
+					hysteresis = <2000>;	// millicelsius
+					type = "active";
+				};
+				cpu_alert2: cpu-alert2 {
+					temperature = <80000>;	// millicelsius
+					hysteresis = <2000>;	// millicelsius
+					type = "active";
+				};
+			};
+			cooling-maps {
+				map_alert1 {
+					trip = <&cpu_alert1>;
+					cooling-device = <&fan0 0 8>;
+				};
+				map_alert2 {
+					trip = <&cpu_alert2>;
+					cooling-device = <&fan0 9 9>;
+				};
 			};
 		};
 	};
-
-	fragment@3 {
-		target-path = "/soc/thermal/thermal-zones/cpu-thermal/cooling-maps";
-		__overlay__ {
-			map_alert1 {
-				trip = <&cpu_alert1>;
-				cooling-device = <&fan0 0 1>;
-			};
-		};
-	};
-*/
 };
