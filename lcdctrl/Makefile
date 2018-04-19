@@ -8,6 +8,7 @@ install: pwm-backlight.dtbo
 	install -m 644 pwm-backlight.service /etc/systemd/system
 	systemctl enable pwm-backlight
 	systemctl restart pwm-backlight
+	install -m 644 95-backlight.rules /etc/udev/rules.d
 
 clean:
 	rm -f pwm-backlight.dtbo
