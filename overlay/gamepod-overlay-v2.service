@@ -1,0 +1,13 @@
+[Unit]
+Description=Battery, Wi-Fi and sound volume overlay indicators
+After=sysinit.target
+
+[Service]
+Type=simple
+ExecStartPre=/bin/setserial /dev/ttyACM0 closing_wait none
+ExecStart=/usr/local/bin/gamepod-overlay -w wlan0 /dev/ttyACM0 -s Speaker
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

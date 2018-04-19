@@ -27,10 +27,16 @@ clean:
 	@rm -f $(BIN)
 
 install: $(BIN)
+	dpkg-query -W setserial > /dev/null 2>&1 || apt-get install -q setserial
 	install $(BIN) $(PREFIXDIR)/bin
 	install -d $(PREFIXDIR)/share/gamepod-overlay
 	install -m 644 *.png $(PREFIXDIR)/share/gamepod-overlay
-	install -m 644 gamepod-overlay.service /etc/systemd/system
+	if [ -f /usr/bin/pigs ]; \
+	then \
+		install -m 644 gamepod-overlay.service /etc/systemd/system; \
+	else \
+		install -m 644 gamepod-overlay-v2.service /etc/systemd/system/gamepod-overlay.service; \
+	fi
 	systemctl enable gamepod-overlay.service
 	systemctl restart gamepod-overlay.service
 
