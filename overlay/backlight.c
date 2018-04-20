@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include "backgroundLayer.h"
 #include "imageLayer.h"
@@ -8,9 +10,8 @@
 #include "element_change.h"
 
 #include "bcm_host.h"
-#include "soundvolume.h"
 #include "timer.h"
-#include "backlight.h"
+#include "volumegraph.h"
 
 #define Y 5
 
@@ -22,17 +23,52 @@ static BACKGROUND_LAYER_T backgroundLayer;
 static IMAGE_LAYER_T iconImgLayer;
 static IMAGE_LAYER_T bargraphImgLayer;
 
-static int volumeGraphTimer = -1;
+static int backlightTimer = -1;
 
-void volgraph_init() {
-    //printf("Volume %d\n", getAlsaMasterVolume());
+static char backlight_sysfs[PATH_MAX];
+static int max_brightness;
 
+static int read_sysfs_int(const char *path) {
+    FILE *fp = fopen(path, "r");
+    if (fp == NULL) {
+	perror(path);
+	return -1;
+    }
+    char line[10];
+    int value =  -1;
+    if (fgets(line, sizeof(line), fp) != NULL) {
+	value = atoi(line);
+    }
+    fclose(fp);
+
+    return value;
+}
+
+static int write_sysfs_int(const char *path, int i) {
+    FILE *fp = fopen(path, "w");
+    if (fp == NULL) {
+	perror(path);
+	return -1;
+    }
+    char value[10];
+    sprintf(value, "%d", i);
+    int rc = 0;
+    if (fputs(value, fp) < 0) {
+	perror(path);
+	rc = -1;
+    }
+    fclose(fp);
+
+    return rc;
+}
+
+void backlight_init() {
     initBackgroundLayer(&backgroundLayer, 0x8, 0);
-    char path[256];
-    sprintf(path, "%s/speaker.png", image_path);
+    char path[PATH_MAX];
+    sprintf(path, "%s/light.png", image_path);
     if (loadPng(&(iconImgLayer.image), path) == false)
     {
-        fprintf(stderr, "unable to load speaker.png\n");
+        fprintf(stderr, "unable to load light.png\n");
     }
     createResourceImageLayer(&iconImgLayer, 31000);
 
@@ -42,15 +78,49 @@ void volgraph_init() {
         fprintf(stderr, "unable to load bargraph.png\n");
     }
     createResourceImageLayer(&bargraphImgLayer, 31001);
+
+    DIR *pdir = opendir("/sys/class/backlight");
+    if (pdir == NULL) {
+	perror("opendir(/sys/class/backlight)");
+	return;
+    }
+    const char *backlight_dev = NULL;
+    while (true) {
+	struct dirent *pentry = readdir(pdir);
+	if (pentry == NULL) {
+		if (errno != 0)
+			perror("readdir");
+		break;
+	}
+	if (!strcmp(".", pentry->d_name) || !strcmp("..", pentry->d_name))
+		continue;
+	backlight_dev = pentry->d_name;
+	break;
+    }
+    closedir(pdir);
+
+    if (backlight_dev == NULL)
+	return;
+
+    sprintf(path, "/sys/class/backlight/%s/max_brightness", backlight_dev);
+    max_brightness = read_sysfs_int(path);
+
+    sprintf(backlight_sysfs, "/sys/class/backlight/%s/brightness", backlight_dev);
 }
 
-void volgraph_destroy() {
+static int getBrightness() {
+    if (backlight_sysfs[0] == '\0')
+	return -1;
+    return read_sysfs_int(backlight_sysfs);
+}
+
+void backlight_destroy() {
     destroyBackgroundLayer(&backgroundLayer);
     destroyImageLayer(&iconImgLayer);
     destroyImageLayer(&bargraphImgLayer);
 }
 
-void volgraph_hide() {
+void backlight_hide() {
     if (bargraphImgLayer.element == 0)
         return;
     int result = 0;
@@ -68,10 +138,10 @@ void volgraph_hide() {
     result = vc_dispmanx_update_submit_sync(update);
 }
 
-void volgraph_run() {
-    if (volumeGraphTimer != -1 && timeout_passed(volumeGraphTimer) == 1) {
-        volgraph_hide();
-        volumeGraphTimer = -1;
+void backlight_run() {
+    if (backlightTimer != -1 && timeout_passed(backlightTimer) == 1) {
+        backlight_hide();
+        backlightTimer = -1;
     }
 }
 
@@ -113,8 +183,8 @@ static void setBarGraphWidth(int percent, DISPMANX_UPDATE_HANDLE_T update) {
     }
 }
 
-static void showVolumeGraph(int percent) {
-    backlight_hide();
+static void showBacklightGraph(int percent) {
+    volgraph_hide();
 
     if (bargraphImgLayer.element != 0)
         return;
@@ -137,16 +207,25 @@ static void showVolumeGraph(int percent) {
     assert(result == 0);
 }
 
-void change_volume(bool up) {
-    int volume = getAlsaMasterVolume();
-    showVolumeGraph(volume);
-    volume += 5 * (up ? 1 : -1);
-    volume = volume > 100 ? 100 : volume < 0 ? 0 : volume;
-    setAlsaMasterVolume(volume);
-    setBarGraphWidth(volume, 0);
-    
-    if (volumeGraphTimer != -1)
-        timeout_unset(volumeGraphTimer);
-    volumeGraphTimer = timeout_set(2);
+void change_backlight(bool up) {
+    int brightness = getBrightness();
+
+    int percent = 0;
+    if (brightness != -1 && max_brightness != 0)
+	percent = brightness * 100 / max_brightness;
+
+    showBacklightGraph(percent);
+    if (brightness != -1) {
+	brightness += (up ? 1 : -1);
+	brightness = brightness > max_brightness ? max_brightness : brightness < 0 ? 0 : brightness;
+	write_sysfs_int(backlight_sysfs, brightness);
+
+	if (max_brightness != 0)
+	    percent = brightness * 100 / max_brightness;
+	setBarGraphWidth(percent, 0);
+    }
+    if (backlightTimer != -1)
+        timeout_unset(backlightTimer);
+    backlightTimer = timeout_set(2);
 
 }

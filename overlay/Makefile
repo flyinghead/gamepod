@@ -2,7 +2,7 @@ PREFIXDIR=/usr/local
 #escaped for sed
 SERIALDEV=\/dev\/ttyACM0
 WIFI_IF=wlan0
-OBJS=main.o soundvolume.o volumegraph.o timer.o batlevel.o wifi.o
+OBJS=main.o soundvolume.o volumegraph.o timer.o batlevel.o wifi.o backlight.o
 BIN=gamepod-overlay
 
 CFLAGS+=-Wall -g -O3 -Iraspidmx/common $(shell libpng-config --cflags) -DIMAGE_PATH='"$(PREFIXDIR)/share/gamepod-overlay"'

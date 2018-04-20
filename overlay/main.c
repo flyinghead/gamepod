@@ -43,6 +43,7 @@
 #include "volumegraph.h"
 #include "timer.h"
 #include "wifi.h"
+#include "backlight.h"
 
 //-------------------------------------------------------------------------
 
@@ -155,10 +156,11 @@ void open_display() {
     batlevel_init();
     volgraph_init();
     wifi_init();
-
+    backlight_init();
 }
 
 void close_display() {
+    backlight_destroy();
     wifi_destroy();
     batlevel_destroy();
     volgraph_destroy();
@@ -251,6 +253,7 @@ int main(int argc, char *argv[])
         volgraph_run();
         batlevel_run();
         wifi_run();
+	backlight_run();
 
         if (serialfd < 0) {
             serialfd = open(argv[optind], O_RDONLY|O_NOCTTY);
@@ -268,13 +271,13 @@ int main(int argc, char *argv[])
                     perror("Error reading from serial device");
                 }
                 continue;
-            
+
             case 0:
                 fprintf(stderr, "EOF reading from serial device\n");
                 close(serialfd);
                 serialfd = -1;
                 continue;
-            
+
             case 1:
                 if (*p != '\n' && *p != '\r') {
                     if (p - line < sizeof(line) - 1)
@@ -293,6 +296,10 @@ int main(int argc, char *argv[])
         else if (!strncmp(line, "VOLUME", 6)) {
             bool up = line[6] == '+';
             change_volume(up);
+        }
+        else if (!strncmp(line, "BRIGHT", 6)) {
+            bool up = line[6] == '+';
+	    change_backlight(up);
         }
 	else if (!strcmp(line, "POWEROFF") && !ignore_poweroff) {
 	    pid_t pid = fork();
