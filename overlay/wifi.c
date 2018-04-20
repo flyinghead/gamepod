@@ -78,7 +78,12 @@ static int run_iwconfig(const char *ifname) {
     } else {
         // Parent
         int status;
-        waitpid(pid, &status, 0);
+        while (waitpid(pid, &status, 0) < 0) {
+		if (errno != EINTR) {
+			perror("waitpid");
+			return -1;
+		}
+	}
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
             if (WIFEXITED(status))
                 fprintf(stderr, "iwconfig command failed rc=%d\n", WEXITSTATUS(status));
